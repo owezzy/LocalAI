@@ -265,6 +265,91 @@ var _ = Describe("samplingFromPredict", func() {
 	})
 })
 
+// The engine resolves speculative_config.model against a local directory or
+// ~/.cache/huggingface/hub ONLY - it never downloads. LocalAI keeps models in
+// its own directory, so a bare repo id would miss the HF cache and fail deep in
+// the load with a confusing "draft checkpoint not found". Resolve it here.
+var _ = Describe("resolveDraftModelPath", func() {
+	var modelsDir string
+
+	BeforeEach(func() {
+		modelsDir = GinkgoT().TempDir()
+	})
+
+	// draftDir creates a plausible draft checkpoint under models/.
+	draftDir := func(name string) string {
+		d := filepath.Join(modelsDir, name)
+		Expect(os.MkdirAll(d, 0o750)).To(Succeed())
+		Expect(os.WriteFile(filepath.Join(d, "config.json"), []byte("{}"), 0o600)).To(Succeed())
+		return d
+	}
+
+	It("rewrites a repo id to the matching directory in the models dir", func() {
+		want := draftDir("Qwen3.6-27B-DFlash")
+		spec := `{"method":"dflash","model":"z-lab/Qwen3.6-27B-DFlash"}`
+		out, err := resolveDraftModelPath(spec, modelsDir)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(out).To(MatchJSON(`{"method":"dflash","model":"` + want + `"}`))
+	})
+
+	It("rewrites a models-dir-relative path", func() {
+		want := draftDir("drafts__dflash")
+		spec := `{"method":"dflash","model":"drafts__dflash"}`
+		out, err := resolveDraftModelPath(spec, modelsDir)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(out).To(ContainSubstring(want))
+	})
+
+	It("leaves an absolute path that already resolves alone", func() {
+		abs := draftDir("elsewhere")
+		spec := `{"method":"dflash","model":"` + abs + `"}`
+		out, err := resolveDraftModelPath(spec, modelsDir)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(out).To(MatchJSON(spec))
+	})
+
+	It("fails with an actionable error when the draft is nowhere on disk", func() {
+		// Silently passing the repo id through would surface as an HF-cache
+		// miss inside the engine, which reads as "your model is broken".
+		spec := `{"method":"dflash","model":"z-lab/Not-Downloaded"}`
+		_, err := resolveDraftModelPath(spec, modelsDir)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("z-lab/Not-Downloaded"))
+		Expect(err.Error()).To(ContainSubstring(modelsDir))
+	})
+
+	It("requires a model key for dflash", func() {
+		_, err := resolveDraftModelPath(`{"method":"dflash"}`, modelsDir)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("model"))
+	})
+
+	It("leaves mtp and ngram configs untouched", func() {
+		// Neither has a separate draft checkpoint to resolve.
+		for _, spec := range []string{
+			`{"method":"mtp"}`,
+			`{"method":"ngram","num_speculative_tokens":4}`,
+		} {
+			out, err := resolveDraftModelPath(spec, modelsDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(out).To(MatchJSON(spec))
+		}
+	})
+
+	It("passes a malformed document through for the engine to reject", func() {
+		// The engine owns config validation and produces the better message.
+		out, err := resolveDraftModelPath(`{not json`, modelsDir)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(out).To(Equal(`{not json`))
+	})
+
+	It("is a no-op on an empty config", func() {
+		out, err := resolveDraftModelPath("", modelsDir)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(out).To(BeEmpty())
+	})
+})
+
 var _ = Describe("validModelPath", func() {
 	It("accepts a .gguf file", func() {
 		dir := GinkgoT().TempDir()

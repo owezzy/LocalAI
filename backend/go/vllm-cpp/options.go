@@ -18,6 +18,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
+	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -204,6 +208,76 @@ func jsonInt32(v any, fallback int32) int32 {
 	default:
 		return fallback
 	}
+}
+
+// resolveDraftModelPath rewrites a DFlash draft reference into an absolute path
+// the engine can actually open.
+//
+// The engine resolves `speculative_config.model` against a directory containing
+// config.json, or against ~/.cache/huggingface/hub/models--<org>--<repo>/
+// snapshots/* - and it NEVER downloads. LocalAI keeps models in its own
+// directory, so a bare HF repo id (the spelling the vLLM docs teach) misses the
+// HF cache and dies deep in the load with "draft checkpoint not found", which
+// reads like a broken checkpoint rather than a missing download.
+//
+// So: try the reference as given, then the last path segment under the models
+// dir (`z-lab/Qwen3.6-27B-DFlash` -> `<models>/Qwen3.6-27B-DFlash`, which is
+// what LocalAI's own downloader produces), then the whole reference under the
+// models dir. If none exist, fail HERE with a message naming both what was
+// asked for and where we looked.
+//
+// mtp and ngram carry no separate draft checkpoint, so they pass through. A
+// document that does not parse also passes through: the engine owns config
+// validation and produces the better error.
+func resolveDraftModelPath(speculativeConfig, modelsDir string) (string, error) {
+	if strings.TrimSpace(speculativeConfig) == "" {
+		return speculativeConfig, nil
+	}
+	var spec map[string]any
+	if err := json.Unmarshal([]byte(speculativeConfig), &spec); err != nil {
+		return speculativeConfig, nil
+	}
+	if method, _ := spec["method"].(string); !strings.EqualFold(method, "dflash") {
+		return speculativeConfig, nil
+	}
+
+	ref, _ := spec["model"].(string)
+	ref = strings.TrimSpace(ref)
+	if ref == "" {
+		return "", fmt.Errorf(
+			"vllm-cpp: speculative_config method %q requires a \"model\" key naming the draft checkpoint", "dflash")
+	}
+
+	candidates := []string{ref}
+	if modelsDir != "" {
+		if base := path.Base(filepath.ToSlash(ref)); base != "" && base != "." && base != "/" {
+			candidates = append(candidates, filepath.Join(modelsDir, base))
+		}
+		candidates = append(candidates, filepath.Join(modelsDir, filepath.FromSlash(ref)))
+	}
+
+	for _, c := range candidates {
+		if _, err := os.Stat(filepath.Join(c, "config.json")); err != nil {
+			continue
+		}
+		abs, err := filepath.Abs(c)
+		if err != nil {
+			abs = c
+		}
+		spec["model"] = abs
+		out, err := json.Marshal(spec)
+		if err != nil {
+			return "", fmt.Errorf("vllm-cpp: re-encoding speculative_config: %w", err)
+		}
+		xlog.Info("[vllm-cpp] resolved DFlash draft checkpoint", "reference", ref, "path", abs)
+		return string(out), nil
+	}
+
+	return "", fmt.Errorf(
+		"vllm-cpp: DFlash draft checkpoint %q not found (looked in: %s). "+
+			"The engine does not download drafts - install the draft model into LocalAI first, "+
+			"or set speculative_config.model to an absolute path to a directory containing config.json",
+		ref, strings.Join(candidates, ", "))
 }
 
 func parseInt32(s string, fallback int32) int32 {

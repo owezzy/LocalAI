@@ -109,6 +109,16 @@ func (v *VllmCpp) Load(opts *pb.ModelOptions) error {
 
 	v.opts = parseOptions(opts)
 
+	// A DFlash draft is a second checkpoint the engine opens by path, and the
+	// engine never downloads one. Resolve it against LocalAI's models directory
+	// now so a repo-id spelling works, and so a missing draft fails here with an
+	// actionable message rather than as an HF-cache miss inside the load.
+	resolvedSpec, err := resolveDraftModelPath(v.opts.speculativeConfig, opts.ModelPath)
+	if err != nil {
+		return err
+	}
+	v.opts.speculativeConfig = resolvedSpec
+
 	mp := defaultModelParams()
 	if v.opts.blockSize > 0 {
 		mp.BlockSize = v.opts.blockSize

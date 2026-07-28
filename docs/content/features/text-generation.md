@@ -962,7 +962,22 @@ prefill from blowing up the per-step activation on the hybrid architectures.
 #### Speculative decoding
 
 `speculative_config:` takes the same JSON object as vLLM's
-`--speculative-config`. Three methods are supported:
+`--speculative-config`. Three methods are supported.
+
+> **Architecture limit.** At the current engine pin, `mtp` and `dflash` are
+> **Qwen3.5 / Qwen3.6 only**. The engine builds a widened speculative KV cache
+> directly for those families rather than through the model registry, so a
+> speculative config on any other architecture (Llama, GLM, Gemma, Mistral, ...)
+> will not work regardless of checkpoint format. `ngram` needs no draft weights
+> and is not subject to this limit.
+
+> **Format limit.** `mtp` and `dflash` require a **safetensors** target and are
+> rejected at load on a `.gguf` target, with:
+> `speculative decoding requires a safetensors target checkpoint`.
+> This is a current gap in the engine's GGUF loader, not a property of the GGUF
+> format - GGUF can carry MTP weights (llama.cpp reads them as `nextn.*`
+> tensors plus a `<arch>.nextn_predict_layers` key), but vllm.cpp's GGUF path
+> does not map them yet. `ngram` works fine on GGUF.
 
 **MTP** (Multi-Token Prediction) uses a draft head shipped inside the target
 checkpoint's own `mtp.*` tensors, so there is no second model to download. It
@@ -989,6 +1004,18 @@ engine_args:
     model: z-lab/Qwen3.6-27B-DFlash
     num_speculative_tokens: 4
 ```
+
+The draft shares the *target's* `embed_tokens` and `lm_head`, so both must come
+from the same model family and the target must be safetensors.
+
+**The engine does not download the draft.** `model:` is resolved, in order,
+as a path as given, then as the last path segment under LocalAI's models
+directory (`z-lab/Qwen3.6-27B-DFlash` → `<models>/Qwen3.6-27B-DFlash`, which is
+what LocalAI's own downloader produces), then as the whole reference under the
+models directory. Install the draft into LocalAI first, or give an absolute path
+to a directory containing `config.json`. If none of those resolve, the load
+fails immediately naming every location that was tried, rather than reporting a
+missing checkpoint from inside the engine.
 
 **N-gram** needs no draft model at all - it proposes from the prompt's own
 suffix history. `num_speculative_tokens` is required:
