@@ -1,6 +1,6 @@
 package main
 
-// purego bindings for the vllm.cpp stable C ABI (include/vllm.h, ABI v2).
+// purego bindings for the vllm.cpp stable C ABI (include/vllm.h, ABI v9).
 //
 // The structs below are hand-mirrored PODs of the C declarations, with
 // explicit padding so the Go layout matches the C layout on linux/darwin
@@ -18,23 +18,52 @@ import (
 )
 
 // abiVersion is the VLLM_ABI_VERSION this file mirrors (vllm.h).
-const abiVersion = 5
+const abiVersion = 9
+
+// Prefix-caching tri-state (vllm_model_params.enable_prefix_caching, ABI v7).
+// 0 is the model-capability default, which is what a config that says nothing
+// about prefix caching must produce.
+const (
+	prefixCachingModelDefault int32 = 0
+	prefixCachingOn           int32 = 1
+	prefixCachingOff          int32 = 2
+)
+
+// prefixCachingName renders the tri-state for the load log line, where "0"
+// would otherwise read as "off" rather than "whatever the model defaults to".
+func prefixCachingName(state int32) string {
+	switch state {
+	case prefixCachingOn:
+		return "on"
+	case prefixCachingOff:
+		return "off"
+	default:
+		return "model-default"
+	}
+}
 
 // vllm_status (vllm.h).
 const (
 	vllmOK = 0
 )
 
-// cModelParams mirrors vllm_model_params.
+// cModelParams mirrors vllm_model_params. Every field is naturally aligned on
+// LP64 (the int32 pairs sit together), so the Go layout needs no explicit
+// padding; the offsets are asserted in vllmcpp_test.go.
 type cModelParams struct {
 	ModelPath           uintptr // const char*
-	TokenizerConfigPath uintptr // const char*
+	TokenizerConfigPath uintptr // const char*; NULL = <model_dir>/... (ABI v9)
 	BlockSize           int32
 	NumBlocks           int32
 	MaxModelLen         int32
 	MaxNumSeqs          int32
 	ToolParser          uintptr // const char*; NULL = auto-detect (ABI v4)
 	ReasoningParser     uintptr // const char*; NULL = auto-detect (ABI v5)
+	SpeculativeConfig   uintptr // const char* JSON; NULL = no speculation (ABI v6)
+	EnablePrefixCaching int32   // tri-state 0/1/2 (ABI v7)
+	MaxNumBatchedTokens int32   // <= 0 = per-arch default (ABI v9)
+	SchedulingPolicy    uintptr // const char*; NULL = "fcfs" (ABI v9)
+	KVTransferConfig    uintptr // const char* JSON; NULL = no connector (ABI v9)
 }
 
 // cSamplingParams mirrors vllm_sampling_params (ABI v2, structured fields
@@ -65,6 +94,12 @@ type cSamplingParams struct {
 	StructuredGrammar    uintptr // const char*
 	StructuredJSONObject int32
 	_                    [4]byte
+	// ABI v8 tail. LocalAI installs no custom logits processor, but the fields
+	// MUST be mirrored: the C side reads them off the pointer we hand it, so a
+	// Go struct that stopped at StructuredJSONObject would have the engine read
+	// 16 bytes past our allocation and call whatever garbage sat there.
+	LogitsProcessor         uintptr // vllm_logits_processor; NULL = none
+	LogitsProcessorUserData uintptr // void*
 }
 
 // cCompletion mirrors vllm_completion.

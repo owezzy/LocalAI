@@ -16,7 +16,7 @@ func TestVllmCpp(t *testing.T) {
 	RunSpecs(t, "vllm-cpp suite")
 }
 
-// The Go POD mirrors must match the C struct layout of vllm.h (ABI v2)
+// The Go POD mirrors must match the C struct layout of vllm.h (ABI v9)
 // byte-for-byte: these offsets are the C offsets on LP64 (linux/darwin
 // amd64+arm64). A failure here means govllmcpp.go drifted from vllm.h.
 var _ = Describe("C ABI struct mirrors", func() {
@@ -30,10 +30,15 @@ var _ = Describe("C ABI struct mirrors", func() {
 		Expect(unsafe.Offsetof(p.MaxNumSeqs)).To(Equal(uintptr(28)))
 		Expect(unsafe.Offsetof(p.ToolParser)).To(Equal(uintptr(32)))
 		Expect(unsafe.Offsetof(p.ReasoningParser)).To(Equal(uintptr(40)))
-		Expect(unsafe.Sizeof(p)).To(Equal(uintptr(48)))
+		Expect(unsafe.Offsetof(p.SpeculativeConfig)).To(Equal(uintptr(48)))
+		Expect(unsafe.Offsetof(p.EnablePrefixCaching)).To(Equal(uintptr(56)))
+		Expect(unsafe.Offsetof(p.MaxNumBatchedTokens)).To(Equal(uintptr(60)))
+		Expect(unsafe.Offsetof(p.SchedulingPolicy)).To(Equal(uintptr(64)))
+		Expect(unsafe.Offsetof(p.KVTransferConfig)).To(Equal(uintptr(72)))
+		Expect(unsafe.Sizeof(p)).To(Equal(uintptr(80)))
 	})
 
-	It("cSamplingParams matches vllm_sampling_params (ABI v2)", func() {
+	It("cSamplingParams matches vllm_sampling_params (ABI v8)", func() {
 		var p cSamplingParams
 		Expect(unsafe.Offsetof(p.Temperature)).To(Equal(uintptr(0)))
 		Expect(unsafe.Offsetof(p.TopP)).To(Equal(uintptr(4)))
@@ -55,7 +60,9 @@ var _ = Describe("C ABI struct mirrors", func() {
 		Expect(unsafe.Offsetof(p.NStructuredChoice)).To(Equal(uintptr(96)))
 		Expect(unsafe.Offsetof(p.StructuredGrammar)).To(Equal(uintptr(104)))
 		Expect(unsafe.Offsetof(p.StructuredJSONObject)).To(Equal(uintptr(112)))
-		Expect(unsafe.Sizeof(p)).To(Equal(uintptr(120)))
+		Expect(unsafe.Offsetof(p.LogitsProcessor)).To(Equal(uintptr(120)))
+		Expect(unsafe.Offsetof(p.LogitsProcessorUserData)).To(Equal(uintptr(128)))
+		Expect(unsafe.Sizeof(p)).To(Equal(uintptr(136)))
 	})
 
 	It("cCompletion matches vllm_completion", func() {
@@ -81,6 +88,112 @@ var _ = Describe("parseOptions", func() {
 		lo := parseOptions(&pb.ModelOptions{Options: []string{
 			"block_size:abc", "num_blocks:-1", "max_num_seqs", "block_size:0",
 		}})
+		Expect(lo).To(Equal(loadOptions{}))
+	})
+
+	It("carries a speculative_config JSON value through the legacy options list", func() {
+		// strings.Cut splits on the FIRST colon only, so a JSON object value
+		// survives the "key:value" spelling intact.
+		lo := parseOptions(&pb.ModelOptions{Options: []string{
+			`speculative_config:{"method":"mtp","num_speculative_tokens":1}`,
+		}})
+		Expect(lo.speculativeConfig).To(Equal(`{"method":"mtp","num_speculative_tokens":1}`))
+	})
+})
+
+var _ = Describe("engine_args", func() {
+	It("maps every load knob onto the C model params", func() {
+		lo := parseOptions(&pb.ModelOptions{EngineArgs: `{
+			"block_size": 64,
+			"num_blocks": 1024,
+			"max_model_len": 16384,
+			"max_num_seqs": 32,
+			"max_num_batched_tokens": 8192,
+			"enable_prefix_caching": true,
+			"scheduling_policy": "lpm",
+			"tool_parser": "qwen3",
+			"reasoning_parser": "deepseek_r1",
+			"tokenizer_config": "/models/tok/tokenizer_config.json"
+		}`})
+		Expect(lo.blockSize).To(Equal(int32(64)))
+		Expect(lo.numBlocks).To(Equal(int32(1024)))
+		Expect(lo.maxModelLen).To(Equal(int32(16384)))
+		Expect(lo.maxNumSeqs).To(Equal(int32(32)))
+		Expect(lo.maxNumBatchedTokens).To(Equal(int32(8192)))
+		Expect(lo.enablePrefixCaching).To(Equal(int32(1)))
+		Expect(lo.schedulingPolicy).To(Equal("lpm"))
+		Expect(lo.toolParser).To(Equal("qwen3"))
+		Expect(lo.reasoningParser).To(Equal("deepseek_r1"))
+		Expect(lo.tokenizerConfigPath).To(Equal("/models/tok/tokenizer_config.json"))
+	})
+
+	It("re-marshals a nested speculative_config object to JSON for the engine", func() {
+		lo := parseOptions(&pb.ModelOptions{EngineArgs: `{
+			"speculative_config": {"method": "mtp", "num_speculative_tokens": 1}
+		}`})
+		Expect(lo.speculativeConfig).To(MatchJSON(`{"method":"mtp","num_speculative_tokens":1}`))
+	})
+
+	It("re-marshals a nested kv_transfer_config object (LMCache) to JSON", func() {
+		lo := parseOptions(&pb.ModelOptions{EngineArgs: `{
+			"kv_transfer_config": {
+				"kv_connector": "LMCacheConnector",
+				"kv_role": "kv_both",
+				"kv_connector_extra_config": {"host": "127.0.0.1", "port": 65432}
+			}
+		}`})
+		Expect(lo.kvTransferConfig).To(MatchJSON(`{
+			"kv_connector":"LMCacheConnector",
+			"kv_role":"kv_both",
+			"kv_connector_extra_config":{"host":"127.0.0.1","port":65432}
+		}`))
+	})
+
+	It("accepts a pre-encoded JSON string for the object-valued knobs", func() {
+		// A config written by hand (or round-tripped through a flat store) may
+		// carry the object as a string; both spellings reach the engine the same.
+		lo := parseOptions(&pb.ModelOptions{EngineArgs: `{
+			"speculative_config": "{\"method\":\"ngram\",\"num_speculative_tokens\":4}"
+		}`})
+		Expect(lo.speculativeConfig).To(MatchJSON(`{"method":"ngram","num_speculative_tokens":4}`))
+	})
+
+	It("maps enable_prefix_caching false onto the force-OFF tri-state", func() {
+		// The C ABI tri-state is 0=model default, 1=on, 2=off, so an explicit
+		// `false` must NOT collapse to the 0 that means "let the model decide".
+		lo := parseOptions(&pb.ModelOptions{EngineArgs: `{"enable_prefix_caching": false}`})
+		Expect(lo.enablePrefixCaching).To(Equal(int32(2)))
+	})
+
+	It("leaves the prefix-caching tri-state at the model default when unset", func() {
+		lo := parseOptions(&pb.ModelOptions{EngineArgs: `{"max_num_seqs": 4}`})
+		Expect(lo.enablePrefixCaching).To(Equal(int32(0)))
+	})
+
+	It("accepts the radix-attention alias upstream documents for prefix caching", func() {
+		lo := parseOptions(&pb.ModelOptions{EngineArgs: `{"enable_radix_attention": true}`})
+		Expect(lo.enablePrefixCaching).To(Equal(int32(1)))
+	})
+
+	It("lets engine_args override the legacy options list", func() {
+		lo := parseOptions(&pb.ModelOptions{
+			Options:    []string{"max_num_seqs:8", "block_size:16"},
+			EngineArgs: `{"max_num_seqs": 64}`,
+		})
+		Expect(lo.maxNumSeqs).To(Equal(int32(64))) // engine_args wins
+		Expect(lo.blockSize).To(Equal(int32(16)))  // untouched keys survive
+	})
+
+	It("ignores malformed engine_args rather than failing the load", func() {
+		lo := parseOptions(&pb.ModelOptions{
+			Options:    []string{"max_num_seqs:8"},
+			EngineArgs: `{not json`,
+		})
+		Expect(lo.maxNumSeqs).To(Equal(int32(8)))
+	})
+
+	It("ignores unknown keys", func() {
+		lo := parseOptions(&pb.ModelOptions{EngineArgs: `{"gpu_memory_utilization": 0.9}`})
 		Expect(lo).To(Equal(loadOptions{}))
 	})
 })
