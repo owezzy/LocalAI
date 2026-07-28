@@ -191,6 +191,12 @@ The container exposes the following volumes:
 | `/configuration` | Dynamic config files (api_keys.json, external_backends.json, runtime_settings.json) | `--localai-config-dir` | `$LOCALAI_CONFIG_DIR` |
 | `/data` | Persistent data (collections, agent state, tasks, jobs) | `--data-path` | `$LOCALAI_DATA_PATH` |
 
+Backend OCI images contain symbolic links. When `/backends` is stored on a
+filesystem that cannot create links, such as some CIFS/SMB mounts, LocalAI
+materializes each link as a regular file so installation can complete. This can
+use more disk space than a local filesystem. Prefer a Docker or Podman named
+volume for `/backends` when possible.
+
 To persist models and data, mount volumes:
 
 ```bash
