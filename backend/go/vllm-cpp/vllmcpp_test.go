@@ -35,7 +35,10 @@ var _ = Describe("C ABI struct mirrors", func() {
 		Expect(unsafe.Offsetof(p.MaxNumBatchedTokens)).To(Equal(uintptr(60)))
 		Expect(unsafe.Offsetof(p.SchedulingPolicy)).To(Equal(uintptr(64)))
 		Expect(unsafe.Offsetof(p.KVTransferConfig)).To(Equal(uintptr(72)))
-		Expect(unsafe.Sizeof(p)).To(Equal(uintptr(80)))
+		Expect(unsafe.Offsetof(p.EnableJumpForward)).To(Equal(uintptr(80)))
+		// 88, not 84: the struct is 8-aligned (it holds pointers), so the
+		// trailing int32 is padded out. Go pads identically.
+		Expect(unsafe.Sizeof(p)).To(Equal(uintptr(88)))
 	})
 
 	It("cSamplingParams matches vllm_sampling_params (ABI v8)", func() {
@@ -190,6 +193,23 @@ var _ = Describe("engine_args", func() {
 	It("accepts the radix-attention alias upstream documents for prefix caching", func() {
 		lo := parseOptions(&pb.ModelOptions{EngineArgs: `{"enable_radix_attention": true}`})
 		Expect(lo.enablePrefixCaching).To(Equal(int32(1)))
+	})
+
+	It("maps enable_jump_forward onto its own tri-state", func() {
+		// ABI v10. Same tri-state shape as prefix caching, and the same trap:
+		// an explicit false must be force-OFF (2), not the 0 that defers to the
+		// environment.
+		on := parseOptions(&pb.ModelOptions{EngineArgs: `{"enable_jump_forward": true}`})
+		Expect(on.enableJumpForward).To(Equal(int32(1)))
+		off := parseOptions(&pb.ModelOptions{EngineArgs: `{"enable_jump_forward": false}`})
+		Expect(off.enableJumpForward).To(Equal(int32(2)))
+		unset := parseOptions(&pb.ModelOptions{EngineArgs: `{"max_num_seqs": 4}`})
+		Expect(unset.enableJumpForward).To(Equal(int32(0)))
+	})
+
+	It("reads enable_jump_forward from the legacy options list too", func() {
+		lo := parseOptions(&pb.ModelOptions{Options: []string{"enable_jump_forward:true"}})
+		Expect(lo.enableJumpForward).To(Equal(int32(1)))
 	})
 
 	It("lets engine_args override the legacy options list", func() {

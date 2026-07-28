@@ -42,6 +42,10 @@ type loadOptions struct {
 	// Automatic prefix caching tri-state (ABI v7): 0 = the model-capability
 	// default, 1 = force on, 2 = force off.
 	enablePrefixCaching int32
+	// Jump-forward decoding tri-state (ABI v10), SGLang's grammar-speed subset:
+	// 0 = defer to the environment (VT_ENABLE_JUMP_FORWARD, default off),
+	// 1 = force on, 2 = force off.
+	enableJumpForward int32
 	// Scheduler admission policy (ABI v9): "" = fcfs, else fcfs|priority|lpm.
 	schedulingPolicy string
 	// Engine-side parser selection (ABI v4/v5). Empty = the engine
@@ -100,7 +104,11 @@ func applyOptionsList(lo *loadOptions, options []string) {
 			lo.tokenizerConfigPath = strings.TrimSpace(v)
 		case "enable_prefix_caching", "enable_radix_attention":
 			if b, err := strconv.ParseBool(strings.TrimSpace(v)); err == nil {
-				lo.enablePrefixCaching = prefixCachingTriState(b)
+				lo.enablePrefixCaching = boolTriState(b)
+			}
+		case "enable_jump_forward":
+			if b, err := strconv.ParseBool(strings.TrimSpace(v)); err == nil {
+				lo.enableJumpForward = boolTriState(b)
 			}
 		}
 	}
@@ -145,7 +153,11 @@ func applyEngineArgs(lo *loadOptions, engineArgs string) {
 			lo.kvTransferConfig = jsonDocument(v, lo.kvTransferConfig, k)
 		case "enable_prefix_caching", "enable_radix_attention":
 			if b, ok := v.(bool); ok {
-				lo.enablePrefixCaching = prefixCachingTriState(b)
+				lo.enablePrefixCaching = boolTriState(b)
+			}
+		case "enable_jump_forward":
+			if b, ok := v.(bool); ok {
+				lo.enableJumpForward = boolTriState(b)
 			}
 		default:
 			xlog.Debug("[vllm-cpp] ignoring unknown engine_args key", "key", k)
@@ -153,15 +165,16 @@ func applyEngineArgs(lo *loadOptions, engineArgs string) {
 	}
 }
 
-// prefixCachingTriState maps a YAML/JSON boolean onto the C ABI's tri-state. An
+// boolTriState maps a YAML/JSON boolean onto the ABI's tri-state encoding. An
 // explicit `false` must reach the engine as force-OFF (2), NOT as the 0 that
-// means "let the model capability decide" - those differ for the hybrid archs,
-// which default the cache off, and for the dense ones, which default it on.
-func prefixCachingTriState(on bool) int32 {
+// means "defer". The difference is real in both directions: prefix caching
+// defaults ON for dense archs and OFF for hybrid ones, and jump forward defers
+// to VT_ENABLE_JUMP_FORWARD.
+func boolTriState(on bool) int32 {
 	if on {
-		return prefixCachingOn
+		return triStateOn
 	}
-	return prefixCachingOff
+	return triStateOff
 }
 
 // jsonDocument normalises an object-valued engine_args entry to a JSON string

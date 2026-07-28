@@ -1,6 +1,6 @@
 package main
 
-// purego bindings for the vllm.cpp stable C ABI (include/vllm.h, ABI v9).
+// purego bindings for the vllm.cpp stable C ABI (include/vllm.h, ABI v10).
 //
 // The structs below are hand-mirrored PODs of the C declarations, with
 // explicit padding so the Go layout matches the C layout on linux/darwin
@@ -18,24 +18,25 @@ import (
 )
 
 // abiVersion is the VLLM_ABI_VERSION this file mirrors (vllm.h).
-const abiVersion = 9
+const abiVersion = 10
 
-// Prefix-caching tri-state (vllm_model_params.enable_prefix_caching, ABI v7).
-// 0 is the model-capability default, which is what a config that says nothing
-// about prefix caching must produce.
+// The ABI's tri-state toggles (enable_prefix_caching ABI v7,
+// enable_jump_forward ABI v10) share one encoding: 0 is NOT "off", it is
+// "defer" - to the model capability for prefix caching, to the environment for
+// jump forward. Only 2 is an explicit off.
 const (
-	prefixCachingModelDefault int32 = 0
-	prefixCachingOn           int32 = 1
-	prefixCachingOff          int32 = 2
+	triStateDefer int32 = 0
+	triStateOn    int32 = 1
+	triStateOff   int32 = 2
 )
 
-// prefixCachingName renders the tri-state for the load log line, where "0"
-// would otherwise read as "off" rather than "whatever the model defaults to".
-func prefixCachingName(state int32) string {
+// triStateName renders a tri-state for the load log line, where "0" would
+// otherwise read as "off" rather than "whatever the default resolves to".
+func triStateName(state int32) string {
 	switch state {
-	case prefixCachingOn:
+	case triStateOn:
 		return "on"
-	case prefixCachingOff:
+	case triStateOff:
 		return "off"
 	default:
 		return "model-default"
@@ -47,9 +48,10 @@ const (
 	vllmOK = 0
 )
 
-// cModelParams mirrors vllm_model_params. Every field is naturally aligned on
-// LP64 (the int32 pairs sit together), so the Go layout needs no explicit
-// padding; the offsets are asserted in vllmcpp_test.go.
+// cModelParams mirrors vllm_model_params. The int32 fields sit in pairs so the
+// interior needs no padding on LP64, but the struct is 8-aligned (it holds
+// pointers) and ends on a lone int32, so the trailing pad is explicit. Offsets
+// and total size are asserted in vllmcpp_test.go.
 type cModelParams struct {
 	ModelPath           uintptr // const char*
 	TokenizerConfigPath uintptr // const char*; NULL = <model_dir>/... (ABI v9)
@@ -64,6 +66,8 @@ type cModelParams struct {
 	MaxNumBatchedTokens int32   // <= 0 = per-arch default (ABI v9)
 	SchedulingPolicy    uintptr // const char*; NULL = "fcfs" (ABI v9)
 	KVTransferConfig    uintptr // const char* JSON; NULL = no connector (ABI v9)
+	EnableJumpForward   int32   // tri-state 0/1/2 (ABI v10)
+	_                   [4]byte // trailing pad to the struct's 8-byte alignment
 }
 
 // cSamplingParams mirrors vllm_sampling_params (ABI v2, structured fields

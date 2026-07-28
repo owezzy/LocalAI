@@ -948,6 +948,7 @@ engine_args:
 | `max_num_seqs` | Max concurrent sequences the scheduler admits | 8 |
 | `max_num_batched_tokens` | Per-step chunked-prefill token budget | per-arch (2048 dense, 4096/8192 MoE) |
 | `enable_prefix_caching` | Automatic prefix caching; `enable_radix_attention` is an accepted alias | model default |
+| `enable_jump_forward` | Jump-forward decoding, which emits grammar-forced tokens without a model step. Only affects constrained requests (`grammar`, JSON schema) | off |
 | `scheduling_policy` | `fcfs`, `priority`, or `lpm` | `fcfs` |
 | `tool_parser` / `reasoning_parser` | Force a parser instead of chat-template auto-detection | auto |
 | `tokenizer_config` | Override the `tokenizer_config.json` the chat template is read from | `<model_dir>/tokenizer_config.json` |
@@ -958,6 +959,12 @@ Raising `max_num_batched_tokens` lets more prefill land in a single step, at the
 cost of decode latency for requests queued behind it. The default deliberately
 does not scale with `max_num_seqs`, which is what keeps a large concurrent
 prefill from blowing up the per-step activation on the hybrid architectures.
+
+`enable_prefix_caching` and `enable_jump_forward` are tri-state at the engine
+boundary: omitting the key defers to a default (the model's own capability for
+prefix caching, an environment variable for jump forward), while an explicit
+`false` forces the feature off. Those are genuinely different - prefix caching
+defaults *on* for dense models - so write the key only when you mean to override.
 
 #### Speculative decoding
 

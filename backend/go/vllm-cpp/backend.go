@@ -146,6 +146,7 @@ func (v *VllmCpp) Load(opts *pb.ModelOptions) error {
 		mp.MaxNumBatchedTokens = v.opts.maxNumBatchedTokens
 	}
 	mp.EnablePrefixCaching = v.opts.enablePrefixCaching
+	mp.EnableJumpForward = v.opts.enableJumpForward
 
 	// Every string below is borrowed by C for the duration of the load call
 	// only (the library copies what it keeps), so the backing slices just have
@@ -172,7 +173,8 @@ func (v *VllmCpp) Load(opts *pb.ModelOptions) error {
 		"blockSize", mp.BlockSize, "numBlocks", mp.NumBlocks,
 		"maxModelLen", mp.MaxModelLen, "maxNumSeqs", mp.MaxNumSeqs,
 		"maxNumBatchedTokens", mp.MaxNumBatchedTokens,
-		"prefixCaching", prefixCachingName(mp.EnablePrefixCaching),
+		"prefixCaching", triStateName(mp.EnablePrefixCaching),
+		"jumpForward", triStateName(mp.EnableJumpForward),
 		"schedulingPolicy", v.opts.schedulingPolicy,
 		"speculativeConfig", v.opts.speculativeConfig,
 		"kvTransferConfig", v.opts.kvTransferConfig)
