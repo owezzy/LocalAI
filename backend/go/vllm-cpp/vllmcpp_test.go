@@ -75,6 +75,23 @@ var _ = Describe("C ABI struct mirrors", func() {
 	})
 })
 
+// Pin/mirror skew is the failure mode this backend is most exposed to: the Go
+// PODs above are hand-written against one VLLM_ABI_VERSION, and the Makefile
+// pins the vllm.cpp commit that produces it. This spec catches drift without
+// needing model weights - set VLLM_CPP_LIBRARY to a built libvllm and it binds
+// every symbol and compares the library's reported ABI against the mirrors'.
+var _ = Describe("real library ABI handshake", func() {
+	It("binds every symbol and reports the ABI the mirrors were written against", func() {
+		lib := os.Getenv("VLLM_CPP_LIBRARY")
+		if lib == "" {
+			Skip("VLLM_CPP_LIBRARY not set; skipping the real-library handshake")
+		}
+		Expect(registerLib(lib)).To(Succeed())
+		Expect(vllmABIVersion()).To(Equal(int32(abiVersion)))
+		Expect(vllmVersion()).NotTo(BeEmpty())
+	})
+})
+
 var _ = Describe("parseOptions", func() {
 	It("extracts the engine sizing knobs", func() {
 		lo := parseOptions(&pb.ModelOptions{Options: []string{
