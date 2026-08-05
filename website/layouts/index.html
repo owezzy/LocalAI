@@ -37,7 +37,7 @@
   <div class="shell">
     <div class="bars rv" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <p class="kicker rv">The runtime</p>
-    <h2 class="rv mt1" style="max-width:21ch">LocalAI is the engine everything else plugs into.</h2>
+    <h2 class="rv mt1" style="max-width:21ch">Everything else plugs into LocalAI.</h2>
     <p class="lede rv mt2">One binary with an OpenAI-compatible API in front of it. Point an existing client at it and the calls keep working, except now the model is on your machine. It also speaks the Anthropic, Ollama and ElevenLabs APIs, so most tools need a URL change and nothing else.</p>
     <p class="lede rv mt2">Underneath, a small core pulls each engine in as a separate backend, only when a model asks for it. That is why one install covers this much ground without becoming a 9 GB download.</p>
     <div class="apis rv">
@@ -75,7 +75,7 @@
       <div class="mi rv">
         <p class="mi__n">01 / HARDWARE</p>
         <h3>Every feature ships a CPU path first.</h3>
-        <p>Not a degraded mode that technically runs. The real one, tested in CI, on the hardware most people already have. GPUs make it faster, they are not the price of entry.</p>
+        <p>That path is tested in CI, on the hardware most people already have, and it is not a degraded fallback. A GPU makes it faster but is not required.</p>
         <p class="mi__meta">x86_64 · ARM64 · CUDA · ROCm · SYCL · Metal · Vulkan</p>
       </div>
       <div class="mi rv">
@@ -86,7 +86,7 @@
       </div>
       <div class="mi rv">
         <p class="mi__n">03 / DISTRIBUTED</p>
-        <h3>Plug in a second machine and stop there.</h3>
+        <h3>Add a second machine.</h3>
         <p>Routing, VRAM-aware placement, prefix-cache affinity and failover are the runtime's problem. You add hardware, the cluster works out what to do with it.</p>
         <p class="mi__meta">Smart routing · autoscaling · P2P · NATS · federation</p>
       </div>
@@ -146,9 +146,9 @@
         </div>
       </div>
       <div>
-        <p class="lede rv">Every part of this clip came out of LocalAI, and nib drove the machine that made it. The agent opened the app, ran the demo and captured the screen, while a local model wrote the script, a cloned voice read it, and the video endpoint generated and lip-synced the presenter. No human touched the keyboard, and nothing left the building.</p>
+        <p class="lede rv">Every part of this clip came out of LocalAI, and the agent in the binary drove the machine that made it. It opened the app, ran the demo and captured the screen, while a local model wrote the script, a cloned voice read it, and the video endpoint generated and lip-synced the presenter. No human touched the keyboard, and nothing left the building.</p>
         <div class="recipe rv">
-          <div><b>Direction</b><span>nib, our agent harness, drove the machine end to end</span></div>
+          <div><b>Direction</b><span>The agent in LocalAI drove the machine end to end</span></div>
           <div><b>Script</b><span>Written by a local language model</span></div>
           <div><b>Voice</b><span>Cloned from a few seconds of reference audio</span></div>
           <div><b>Presenter</b><span>Generated and lip-synced through the video endpoint</span></div>
@@ -174,7 +174,7 @@
       <div>
         <h3>parakeet.cpp</h3>
         <p class="spot__h">Twenty-seven times faster than whisper.cpp, on a CPU.</p>
-        <p>NVIDIA NeMo Parakeet, ported to C++ and ggml. Ten checkpoints, all of them verified at WER 0 against NeMo, which means the transcript comes out byte for byte identical while finishing first. Cache-aware streaming with end-of-utterance detection handles live audio, and the multilingual streaming model covers 40 or more locales.</p>
+        <p>NVIDIA NeMo Parakeet, ported to C++ and ggml. Ten checkpoints, all of them verified at WER 0 against NeMo, which means the transcript is identical to NeMo's while finishing first. Cache-aware streaming with end-of-utterance detection handles live audio, and the multilingual streaming model covers 40 or more locales.</p>
         <div class="facts">
           <div><b>27x</b><span>vs whisper.cpp, CPU</span></div>
           <div><b>1.40x</b><span>vs NeMo, CPU median</span></div>
@@ -343,18 +343,22 @@
 <section class="deepbg" id="nib">
   <div class="shell">
     <div class="bars rv" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-    <p class="kicker rv">nib</p>
+    <p class="kicker rv">the agent</p>
     <div class="duo">
       <div>
-        <h2 class="rv mt1" style="max-width:16ch">An agent you can drop on any box you SSH into.</h2>
-        <p class="lede rv mt2">One Go binary, about 20 MB, no runtime and no daemon. Press <span class="mono" style="color:var(--cyan-hi)">Ctrl+Space</span> anywhere and it opens. Point it at any OpenAI-compatible endpoint, including a model running on your own laptop, and it works. Tool calls go through an approval gate you control, and Claude Code plugins load as they are.</p>
-        <div class="chips rv"><span>Go</span><span>zero dependencies</span><span>MCP</span><span>plugins</span><span>skills</span><span>sub-agents</span></div>
-        <p class="rv mt2"><a class="btn btn--o" href="https://github.com/mudler/nib">nib on GitHub ↗</a></p>
+        <h2 class="rv mt1" style="max-width:18ch">The agent is already in the binary.</h2>
+        <p class="lede rv mt2">Run <span class="mono" style="color:var(--cyan-hi)">local-ai chat</span> and you are talking to an agent that already knows where your models are. It runs shell commands behind an approval gate you control, delegates to sub-agents, and loads MCP servers, plugins and skills. Claude Code plugins load as they are.</p>
+        <p class="lede rv mt2">It is also nib, a single ~20 MB Go binary with no runtime and no daemon, so you can drop the same agent on any box you SSH into and press <span class="mono" style="color:var(--cyan-hi)">Ctrl+Space</span>.</p>
+        <div class="chips rv"><span>local-ai chat</span><span>MCP</span><span>plugins</span><span>skills</span><span>sub-agents</span><span>zero dependencies</span></div>
+        <div class="acts rv">
+          <a class="btn" href="/docs/features/terminal-agent/">Read the docs <span>→</span></a>
+          <a class="btn btn--o" href="https://github.com/mudler/nib">nib on GitHub ↗</a>
+        </div>
       </div>
       <div class="duo__m rv">
         <figure class="screen" style="margin:0">
-          <figcaption class="screen__bar"><i></i> nib <b>~20 MB, one binary</b></figcaption>
-          <video src="/media/nib.mp4" muted loop playsinline preload="none" data-lazy aria-label="The nib terminal agent running a task"></video>
+          <figcaption class="screen__bar"><i></i> local-ai chat <b>the agent, in the binary</b></figcaption>
+          <video src="/media/nib.mp4" muted loop playsinline preload="none" data-lazy aria-label="The terminal agent built into LocalAI running a task"></video>
         </figure>
       </div>
     </div>
@@ -391,7 +395,7 @@
           <p>Distributed mode with VRAM-aware routing, autoscaling, multi-user auth and per-user quotas.</p></div>
         <div class="tl__i"><p class="tl__d">MAY 2026</p><h4>It sees and hears</h4>
           <p>Voice recognition, face recognition with liveness, diarization, video generation, drop-in Ollama API.</p></div>
-        <div class="tl__i"><p class="tl__d">JUL 2026</p><h4>Nineteen engines of our own</h4>
+        <div class="tl__i"><p class="tl__d">JUL 2026</p><h4>Eighteen engines of our own</h4>
           <p>The native C and C++ ports take over the heavy Python backends, one modality at a time.</p></div>
       </div>
     </div>

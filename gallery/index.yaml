@@ -1,27 +1,174 @@
 ---
+- &nemotron-3-embed-1b
+  name: "nemotron-3-embed-1b-q4"
+  url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
+  variants:
+    - model: nemotron-3-embed-8b-q4
+  license: openmdw-1.1
+  urls:
+    - https://huggingface.co/nvidia/Nemotron-3-Embed-1B-BF16
+    - https://huggingface.co/zenmagnets/Nemotron-3-Embed-1B-Q4_K_M-GGUF
+  description: |
+    Nemotron-3-Embed-1B is NVIDIA's multilingual text embedding model for
+    retrieval, semantic search, and RAG. This compact Q4_K_M GGUF produces
+    2,048-dimensional normalized embeddings and supports 36 languages. Prefix
+    retrieval queries with `query: ` and documents with `passage: `.
+  tags:
+    - embeddings
+    - multilingual
+    - retrieval
+    - rag
+    - gguf
+    - cpu
+    - gpu
+  overrides:
+    backend: llama-cpp
+    embeddings: true
+    known_usecases:
+      - embeddings
+    parameters:
+      model: llama-cpp/models/nemotron-3-embed-1b-q4_k_m.gguf
+  files:
+    - filename: llama-cpp/models/nemotron-3-embed-1b-q4_k_m.gguf
+      uri: huggingface://zenmagnets/Nemotron-3-Embed-1B-Q4_K_M-GGUF/nemotron-3-embed-1b-q4_k_m.gguf
+      sha256: 9a74166f51dbc280073748fa199bea49283bd21f7f9280f2dec2b4d975ddfd1d
+- !!merge <<: *nemotron-3-embed-1b
+  name: "nemotron-3-embed-8b-q4"
+  variants: []
+  urls:
+    - https://huggingface.co/nvidia/Nemotron-3-Embed-8B-BF16
+    - https://huggingface.co/Abiray/Nemotron-3-Embed-8B-GGUF
+  description: |
+    Nemotron-3-Embed-8B is NVIDIA's larger multilingual text embedding model
+    for retrieval, semantic search, and RAG. This Q4_K_M GGUF balances retrieval
+    quality with local resource use and supports 36 languages. Prefix retrieval
+    queries with `query: ` and documents with `passage: `.
+  overrides:
+    backend: llama-cpp
+    embeddings: true
+    known_usecases:
+      - embeddings
+    parameters:
+      model: llama-cpp/models/Nemotron-3-Embed-8B-Q4_K_M.gguf
+  files:
+    - filename: llama-cpp/models/Nemotron-3-Embed-8B-Q4_K_M.gguf
+      uri: huggingface://Abiray/Nemotron-3-Embed-8B-GGUF/Nemotron-3-Embed-8B-Q4_K_M.gguf
+      sha256: a2aa29c618da6eed10d9474e72e33188c61e5fd700aed2fe9a1d98abdc90c6fc
+- &grug-27b
+  name: "grug-27b"
+  variants:
+    - model: grug-27b-q8
+    - model: grug-27b-mtp
+  url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
+  urls:
+    - https://huggingface.co/ProCreations/grug-27b
+    - https://huggingface.co/ProCreations/grug-27b-qat-q4-gguf
+  description: |
+    Grug 27B is a multimodal Qwen3.5-derived model for chat, reasoning, vision,
+    and tool use. This entry uses the QAT Q4_K_M GGUF build.
+  license: "apache-2.0"
+  tags:
+    - llm
+    - gguf
+    - vision
+    - multimodal
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+    mmproj: llama-cpp/mmproj/grug-27b/mmproj-grug-27b-f16.gguf
+    options:
+      - use_jinja:true
+    parameters:
+      model: llama-cpp/models/grug-27b/grug-27b-qat-Q4_K_M.gguf
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/grug-27b/grug-27b-qat-Q4_K_M.gguf
+      uri: huggingface://ProCreations/grug-27b-qat-q4-gguf/grug-27b-qat-Q4_K_M.gguf
+      sha256: 777df9862d6e884ce006a5b13f77f99b56a4dd7c79bf1386af8a826875d7223e
+    - filename: llama-cpp/mmproj/grug-27b/mmproj-grug-27b-f16.gguf
+      uri: huggingface://ProCreations/grug-27b-gguf/mmproj-grug-27b-f16.gguf
+      sha256: abec0c68ae222300197d247bc9bb2e72f0e7b285d38eb49265a2fc28c952550d
+- !!merge <<: *grug-27b
+  name: "grug-27b-q8"
+  variants: []
+  urls:
+    - https://huggingface.co/ProCreations/grug-27b
+    - https://huggingface.co/ProCreations/grug-27b-gguf
+  description: |
+    Grug 27B Q8 is the higher-precision Q8_0 GGUF build for multimodal chat,
+    reasoning, vision, and tool use.
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+    mmproj: llama-cpp/mmproj/grug-27b-q8/mmproj-grug-27b-f16.gguf
+    options:
+      - use_jinja:true
+    parameters:
+      model: llama-cpp/models/grug-27b-q8/grug-27b-Q8_0.gguf
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/grug-27b-q8/grug-27b-Q8_0.gguf
+      uri: huggingface://ProCreations/grug-27b-gguf/grug-27b-Q8_0.gguf
+      sha256: fe2714d8770ef1b5fe4cd960d07e781fabf6f4bd028c3d202cb512565202187f
+    - filename: llama-cpp/mmproj/grug-27b-q8/mmproj-grug-27b-f16.gguf
+      uri: huggingface://ProCreations/grug-27b-gguf/mmproj-grug-27b-f16.gguf
+      sha256: abec0c68ae222300197d247bc9bb2e72f0e7b285d38eb49265a2fc28c952550d
+- !!merge <<: *grug-27b
+  name: "grug-27b-mtp"
+  variants: []
+  urls:
+    - https://huggingface.co/ProCreations/grug-27b
+    - https://huggingface.co/ProCreations/grug-27b-mtp-gguf
+  description: |
+    Grug 27B MTP is the Q4_K_M GGUF build with multi-token prediction enabled
+    for speculative decoding, plus the shared vision projector.
+  tags:
+    - llm
+    - gguf
+    - vision
+    - multimodal
+    - mtp
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+    mmproj: llama-cpp/mmproj/grug-27b-mtp/mmproj-grug-27b-f16.gguf
+    options:
+      - use_jinja:true
+      - spec_type:draft-mtp
+    parameters:
+      model: llama-cpp/models/grug-27b-mtp/grug-27b-mtp-Q4_K_M.gguf
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/grug-27b-mtp/grug-27b-mtp-Q4_K_M.gguf
+      uri: huggingface://ProCreations/grug-27b-mtp-gguf/grug-27b-mtp-Q4_K_M.gguf
+      sha256: 9442fabb262a54e4a3441ce00e764b6dd334c7ee57548ef86b274eeedb30b0b4
+    - filename: llama-cpp/mmproj/grug-27b-mtp/mmproj-grug-27b-f16.gguf
+      uri: huggingface://ProCreations/grug-27b-gguf/mmproj-grug-27b-f16.gguf
+      sha256: abec0c68ae222300197d247bc9bb2e72f0e7b285d38eb49265a2fc28c952550d
 - name: "deepseek-v4-flash-0731"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
-    - https://huggingface.co/unsloth/DeepSeek-V4-Flash-0731-GGUF
-  description: |
-    # DeepSeek-V4-Flash-0731
-
-    Technical Report👁️
-
-    ## Introduction
-
-    **DeepSeek-V4-Flash-0731** is the official release of **DeepSeek-V4-Flash**, superseding the preview version, with substantially enhanced agentic capabilities. It has the same model structure as DeepSeek-V4-Flash-DSpark, i.e. it comes with a speculative decoding module attached.
-
-    DeepSeek-V4-Flash-0731 outperforms DeepSeek-V4-Pro (Preview) on benchmarks listed below despite its far smaller activated parameter count, and is broadly competitive with the strongest proprietary models available.
-
-    Notes:
-
-    1. For the Code Agent tasks among the public benchmarks above, DeepSeek-V4-Flash-0731 is evaluated with the minimal mode of DeepSeek Harness (to be released) as the agent framework, using the `max` reasoning effort level with `temperature = 1.0, top_p = 0.95`.
-    2. † DSBench-FullStack is an internal full-stack development test set; DSBench-Hard is an internal test set of difficult coding-agent problems.
-
-    ## Chat Template
-
-    ...
+    - https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+    - https://huggingface.co/ggml-org/DeepSeek-V4-Flash-0731-GGUF
+  description: "# DeepSeek-V4-Flash-0731\n\nTechnical Report\U0001F441️\n\n## Introduction\n\n**DeepSeek-V4-Flash-0731** is the official release of **DeepSeek-V4-Flash**, superseding the preview version, with substantially enhanced agentic capabilities. It has the same model structure as DeepSeek-V4-Flash-DSpark, i.e. it comes with a speculative decoding module attached.\n\nDeepSeek-V4-Flash-0731 outperforms DeepSeek-V4-Pro (Preview) on benchmarks listed below despite its far smaller activated parameter count, and is broadly competitive with the strongest proprietary models available.\n\nNotes:\n\n1. For the Code Agent tasks among the public benchmarks above, DeepSeek-V4-Flash-0731 is evaluated with the minimal mode of DeepSeek Harness (to be released) as the agent framework, using the `max` reasoning effort level with `temperature = 1.0, top_p = 0.95`.\n2. † DSBench-FullStack is an internal full-stack development test set; DSBench-Hard is an internal test set of difficult coding-agent problems.\n\n## Chat Template\n\n...\n"
   license: "mit"
   tags:
     - llm
@@ -29,20 +176,104 @@
     - deepseek
   icon: https://github.com/deepseek-ai/DeepSeek-V2/blob/main/figures/logo.svg
   overrides:
-    backend: ds4
+    backend: llama-cpp
     function:
       grammar:
         disable: true
     known_usecases:
       - chat
     parameters:
-      model: ds4flash.gguf
+      model: DeepSeek-V4-Flash-0731-MXFP4.gguf
     template:
       use_tokenizer_template: true
   files:
-    - filename: ds4flash.gguf
-      sha256: ""
-      uri: https://huggingface.co/unsloth/DeepSeek-V4-Flash-0731-GGUF
+    - filename: DeepSeek-V4-Flash-0731-MXFP4.gguf
+      uri: huggingface://ggml-org/DeepSeek-V4-Flash-0731-GGUF/DeepSeek-V4-Flash-0731-MXFP4.gguf
+      sha256: 65f73494afaf27d3add0751a5b716dd2d3e012c66ae0dbbcc1bf8477f92b3ab7
+- name: instella-moe-16b-a3b-think
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  urls:
+    - https://huggingface.co/amd/Instella-MoE-16B-A3B-Think
+    - https://huggingface.co/DevQuasar/amd.Instella-MoE-16B-A3B-Think-GGUF
+  description: |
+    AMD Instella-MoE-16B-A3B-Think is a reasoning and instruction-following
+    mixture-of-experts model with 16 billion total parameters and 3 billion
+    active parameters. It supports long-form reasoning, chat, coding, and tool
+    use. This entry uses the Q4_K_M GGUF quantization.
+  license: other
+  tags:
+    - llm
+    - gguf
+    - deepseek-v3
+    - moe
+    - reasoning
+    - thinking
+    - coding
+    - tool-use
+    - cpu
+    - gpu
+  last_checked: "2026-08-03"
+  variants:
+    - model: instella-moe-16b-a3b-think-q8
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+    options:
+      - use_jinja:true
+    parameters:
+      model: amd.Instella-MoE-16B-A3B-Think.f16.gguf.Q4_K_M.gguf
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: amd.Instella-MoE-16B-A3B-Think.f16.gguf.Q4_K_M.gguf
+      sha256: f776ddfee5dc6c808265c3f0a9c1b384c98058bfa551fe5df656fe712eb4c7f3
+      uri: huggingface://DevQuasar/amd.Instella-MoE-16B-A3B-Think-GGUF/Q4_K_M/amd.Instella-MoE-16B-A3B-Think.f16.gguf.Q4_K_M.gguf
+- name: instella-moe-16b-a3b-think-q8
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  urls:
+    - https://huggingface.co/amd/Instella-MoE-16B-A3B-Think
+    - https://huggingface.co/DevQuasar/amd.Instella-MoE-16B-A3B-Think-GGUF
+  description: |
+    AMD Instella-MoE-16B-A3B-Think is a reasoning and instruction-following
+    mixture-of-experts model with 16 billion total parameters and 3 billion
+    active parameters. It supports long-form reasoning, chat, coding, and tool
+    use. This entry uses the near-lossless Q8_0 GGUF quantization.
+  license: other
+  tags:
+    - llm
+    - gguf
+    - deepseek-v3
+    - moe
+    - reasoning
+    - thinking
+    - coding
+    - tool-use
+    - cpu
+    - gpu
+  last_checked: "2026-08-03"
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+    options:
+      - use_jinja:true
+    parameters:
+      model: amd.Instella-MoE-16B-A3B-Think.f16.gguf.Q8_0.gguf
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: amd.Instella-MoE-16B-A3B-Think.f16.gguf.Q8_0.gguf
+      sha256: 6bff0a99d06be8ecf7d9c7f65584bfc2b24526ab0bab32dbfe7dde4237cd7c33
+      uri: huggingface://DevQuasar/amd.Instella-MoE-16B-A3B-Think-GGUF/Q8_0/amd.Instella-MoE-16B-A3B-Think.f16.gguf.Q8_0.gguf
 - name: "parable-granite-4.1-3b-claude-fable-5"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
@@ -80,7 +311,7 @@
   files:
     - filename: llama-cpp/models/Parable-Granite-4.1-3B-Claude-Fable-5-Q4_K_M/Parable-Granite-4.1-3B-Claude-Fable-5-GGUF-Q4_K_M.gguf
       uri: https://huggingface.co/AnkitAI/Parable-Granite-4.1-3B-Claude-Fable-5-GGUF/resolve/main/Parable-Granite-4.1-3B-Claude-Fable-5-GGUF-Q4_K_M.gguf
-      sha256: 67dc7695d92939c713165761f115c9d892fdff74fcbd987c8bb453b9b8ab645d
+      sha256: dbf202638af23e72508d8316577655d24ba2037fda51ce802b8996977e290bce
 - name: "parable-qwen3-4b-claude-fable-5"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
@@ -114,7 +345,7 @@
   files:
     - filename: llama-cpp/models/Parable-Qwen3-4B-Claude-Fable-5-Q4_K_M/Parable-Qwen3-4B-Claude-Fable-5-GGUF-Q4_K_M.gguf
       uri: https://huggingface.co/AnkitAI/Parable-Qwen3-4B-Claude-Fable-5-GGUF/resolve/main/Parable-Qwen3-4B-Claude-Fable-5-GGUF-Q4_K_M.gguf
-      sha256: c94b06a912aa901f3da5689754577ad534415efafc50dcee3f389594a153bf38
+      sha256: 65cc4824fb78ecaf55afdfcdb6dd2e27e1aa805d289db89eae94d32d450403f0
 - name: "parable-granite-4.1-8b-claude-fable-5"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
@@ -150,7 +381,7 @@
   files:
     - filename: llama-cpp/models/Parable-Granite-4.1-8B-Claude-Fable-5-Q4_K_M/Parable-Granite-4.1-8B-Claude-Fable-5-GGUF-Q4_K_M.gguf
       uri: https://huggingface.co/AnkitAI/Parable-Granite-4.1-8B-Claude-Fable-5-GGUF/resolve/main/Parable-Granite-4.1-8B-Claude-Fable-5-GGUF-Q4_K_M.gguf
-      sha256: 61a8133c344a0d0a00188395afe33c803e3b973cb4bbfd5ef1fa7110e80bc1c3
+      sha256: 57e464ae3d35253d4351639757dc35e71bab8324d12d49a5870695ce73dc19cf
 - name: "parable-qwen3-8b-claude-fable-5"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
@@ -184,7 +415,7 @@
   files:
     - filename: llama-cpp/models/Parable-Qwen3-8B-Claude-Fable-5-Q4_K_M/Parable-Qwen3-8B-Claude-Fable-5-GGUF-Q4_K_M.gguf
       uri: https://huggingface.co/AnkitAI/Parable-Qwen3-8B-Claude-Fable-5-GGUF/resolve/main/Parable-Qwen3-8B-Claude-Fable-5-GGUF-Q4_K_M.gguf
-      sha256: 956070afc8023b8665fe450842f7be76b505b53d142460fd9b588222f4e16112
+      sha256: 4532d2379d38a37279866a030e51d419561f9d4d22fee00d2a33647d66f05065
 - &pocket-35b
   name: "pocket-35b"
   variants:
@@ -554,35 +785,18 @@
 - name: "qwen3.6-35b-a3b-uncensored-genesis-hermes-v6"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
+    - https://huggingface.co/HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive
     - https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-Hermes-V6-GGUF
   description: |
-    # Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive
+    Qwen3.6-35B-A3B Uncensored Genesis Hermes V6 is LuffyTheFox's multimodal,
+    agentic derivative of HauhauCS's uncensored Qwen3.6-35B-A3B model. It
+    combines Genesis tensor calibration with Hermes function-calling data while
+    retaining the 35B mixture-of-experts architecture, roughly 3B active
+    parameters per token, and the native 262K-token context window.
 
-    > **Join the Discord** for updates, roadmaps, projects, or just to chat.
-
-    Qwen3.6-35B-A3B uncensored by HauhauCS. **0/465 Refusals.**
-
-    > **HuggingFace's "Hardware Compatibility" widget doesn't recognize K_P quants** — it may show fewer files than actually exist. Click **"View +X variants"** or go to **Files and versions** to see all available downloads.
-
-    ## About
-
-    No changes to datasets or capabilities. Fully functional, 100% of what the original authors intended - just without the refusals.
-
-    These are meant to be the best lossless uncensored models out there.
-
-    ## Aggressive Variant
-
-    Stronger uncensoring — model is fully unlocked and won't refuse prompts. May occasionally append short disclaimers (baked into base model training, not refusals) but full content is always generated.
-
-    For a more conservative uncensor that keeps some safety guardrails, check the Balanced variant when it's available.
-
-    ## Downloads
-
-    All quants generated with importance matrix (imatrix) for optimal quality preservation on abliterated weights.
-
-    ## What are K_P quants?
-
-    ...
+    This entry installs the Q8_0 GGUF together with its F16 multimodal projector
+    for llama.cpp. The model card recommends Jinja chat templates and at least a
+    128K context for its thinking behavior. License: Apache-2.0.
   license: "apache-2.0"
   tags:
     - llm
@@ -1025,6 +1239,99 @@
       sha256: 05d4475a956030be87b099865d6552a541a476db8cc3e266fcfa7c5a24846248
       uri: https://huggingface.co/unsloth/Inkling-Small-GGUF/resolve/main/mmproj-BF16.gguf
   variants: []
+- &qwythos-27b-v1
+  name: "qwythos-27b-v1"
+  variants:
+    - model: qwythos-27b-v1-mtp
+  url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
+  urls:
+    - https://huggingface.co/empero-ai/Qwythos-27B-v1
+    - https://huggingface.co/empero-ai/Qwythos-27B-v1-GGUF
+  description: |
+    Qwythos-27B-v1 is an Apache-2.0 dense 27B reasoning and agentic model
+    derived from Qwen3.5-27B. It supports tool use, vision through the included
+    projector, and a one-million-token context window. This entry uses the
+    recommended Q4_K_M GGUF quantization; an MTP-enabled build is available as
+    a variant for hosts with recent llama.cpp support.
+  license: "apache-2.0"
+  tags:
+    - llm
+    - gguf
+    - vision
+    - multimodal
+    - reasoning
+    - thinking
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+    mmproj: llama-cpp/mmproj/Qwythos-27B-Q4_K_M/mmproj-Qwythos-27B-F16.gguf
+    options:
+      - use_jinja:true
+    parameters:
+      model: llama-cpp/models/Qwythos-27B-Q4_K_M/Qwythos-27B-Q4_K_M.gguf
+      repeat_penalty: 1.05
+      temperature: 0.6
+      top_k: 20
+      top_p: 0.95
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/Qwythos-27B-Q4_K_M/Qwythos-27B-Q4_K_M.gguf
+      sha256: 817aa895cd3b6e0680c7aa8da62ec393f3125ff0ab676f8f06a8fc759d20e3d5
+      uri: huggingface://empero-ai/Qwythos-27B-v1-GGUF/Qwythos-27B-Q4_K_M.gguf
+    - filename: llama-cpp/mmproj/Qwythos-27B-Q4_K_M/mmproj-Qwythos-27B-F16.gguf
+      sha256: 82af886db3806d5bf634145fe431dca9577235fab39720ac144b16c1b4fcb0a9
+      uri: huggingface://empero-ai/Qwythos-27B-v1-GGUF/mmproj-Qwythos-27B-F16.gguf
+- !!merge <<: *qwythos-27b-v1
+  name: "qwythos-27b-v1-mtp"
+  variants: []
+  description: |
+    Qwythos-27B-v1 MTP is the Q4_K_M build with its native multi-token
+    prediction head enabled for faster speculative decoding. It also includes
+    the shared vision projector and supports tool use and long-context
+    reasoning.
+  tags:
+    - llm
+    - gguf
+    - vision
+    - multimodal
+    - reasoning
+    - thinking
+    - mtp
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+    mmproj: llama-cpp/mmproj/Qwythos-27B-MTP-Q4_K_M/mmproj-Qwythos-27B-F16.gguf
+    options:
+      - use_jinja:true
+      - spec_type:draft-mtp
+      - spec_n_max:6
+      - spec_p_min:0.75
+    parameters:
+      model: llama-cpp/models/Qwythos-27B-MTP-Q4_K_M/Qwythos-27B-MTP-Q4_K_M.gguf
+      repeat_penalty: 1.05
+      temperature: 0.6
+      top_k: 20
+      top_p: 0.95
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/Qwythos-27B-MTP-Q4_K_M/Qwythos-27B-MTP-Q4_K_M.gguf
+      sha256: 51cce0271e7ccf25d5892ec8d731bd21e7e80c9a78e291d2f473c7337656ecaa
+      uri: huggingface://empero-ai/Qwythos-27B-v1-GGUF/Qwythos-27B-MTP-Q4_K_M.gguf
+    - filename: llama-cpp/mmproj/Qwythos-27B-MTP-Q4_K_M/mmproj-Qwythos-27B-F16.gguf
+      sha256: 82af886db3806d5bf634145fe431dca9577235fab39720ac144b16c1b4fcb0a9
+      uri: huggingface://empero-ai/Qwythos-27B-v1-GGUF/mmproj-Qwythos-27B-F16.gguf
 - name: "qwythos-9b-v2"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
@@ -1037,6 +1344,7 @@
     - vision
     - multimodal
     - reasoning
+    - mtp
   overrides:
     backend: llama-cpp
     function:
@@ -1062,6 +1370,85 @@
     - filename: llama-cpp/mmproj/Qwythos-9B-v2-MTP-Q4_K_M/mmproj-Qwythos-9B-v2-BF16.gguf
       sha256: 0d1687cb33124c78acab788b342d4a2eaf85b3035e87c3abe4ee9d0b84ddb4f5
       uri: https://huggingface.co/empero-ai/Qwythos-9B-v2-GGUF/resolve/main/mmproj-Qwythos-9B-v2-BF16.gguf
+- &qwen3-6-14b-a3b-fablevibes
+  name: "qwen3.6-14b-a3b-fablevibes"
+  variants:
+    - model: qwen3.6-14b-a3b-fablevibes-q8
+  url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
+  urls:
+    - https://huggingface.co/tvall43/Qwen3.6-14B-A3B-FableVibes
+    - https://huggingface.co/tvall43/Qwen3.6-14B-A3B-FableVibes-GGUF
+  description: |
+    Qwen3.6-14B-A3B-FableVibes is an Apache-2.0 mixture-of-experts reasoning
+    model distilled from Fable 5 and Claude Opus traces, with additional tool
+    calling and coding data. It retains Qwen 3.6 vision support while pruning
+    the 35B-A3B base to a 14B consumer-oriented footprint. This default entry
+    uses the recommended Q4_K_M GGUF quantization and its Q8_0 multimodal
+    projector.
+  license: "apache-2.0"
+  tags:
+    - llm
+    - gguf
+    - cpu
+    - gpu
+    - moe
+    - reasoning
+    - thinking
+    - vision
+    - multimodal
+  last_checked: "2026-08-03"
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+    mmproj: llama-cpp/mmproj/Qwen3.6-14B-A3B-FableVibes/Qwen3.6-14B-A3B-FableVibes-mmproj-Q8_0.gguf
+    options:
+      - use_jinja:true
+    parameters:
+      model: llama-cpp/models/Qwen3.6-14B-A3B-FableVibes/Qwen3.6-14B-A3B-FableVibes-Q4_K_M.gguf
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/Qwen3.6-14B-A3B-FableVibes/Qwen3.6-14B-A3B-FableVibes-Q4_K_M.gguf
+      sha256: 21aa4b0b28090469e8a319c889451df2f1ea6aad27ac3818c8c8a86f86d5bc9e
+      uri: huggingface://tvall43/Qwen3.6-14B-A3B-FableVibes-GGUF/Qwen3.6-14B-A3B-FableVibes-Q4_K_M.gguf
+    - filename: llama-cpp/mmproj/Qwen3.6-14B-A3B-FableVibes/Qwen3.6-14B-A3B-FableVibes-mmproj-Q8_0.gguf
+      sha256: ca27dbf0c65a7232e9458bfdda8bc45efc09ab60e4cc6f58ea0c7b7cc2253257
+      uri: huggingface://tvall43/Qwen3.6-14B-A3B-FableVibes-GGUF/Qwen3.6-14B-A3B-FableVibes-mmproj-Q8_0.gguf
+- !!merge <<: *qwen3-6-14b-a3b-fablevibes
+  name: "qwen3.6-14b-a3b-fablevibes-q8"
+  variants: []
+  description: |
+    Qwen3.6-14B-A3B-FableVibes is an Apache-2.0 mixture-of-experts reasoning
+    model distilled from Fable 5 and Claude Opus traces, with additional tool
+    calling and coding data. This entry uses the near-lossless Q8_0 GGUF
+    quantization and its matching Q8_0 multimodal projector.
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+    mmproj: llama-cpp/mmproj/Qwen3.6-14B-A3B-FableVibes-Q8_0/Qwen3.6-14B-A3B-FableVibes-mmproj-Q8_0.gguf
+    options:
+      - use_jinja:true
+    parameters:
+      model: llama-cpp/models/Qwen3.6-14B-A3B-FableVibes-Q8_0/Qwen3.6-14B-A3B-FableVibes-Q8_0.gguf
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/Qwen3.6-14B-A3B-FableVibes-Q8_0/Qwen3.6-14B-A3B-FableVibes-Q8_0.gguf
+      sha256: ddea86093b863215fa75969d81df494fafdb0e6c4a65af557ed3a710e2238e58
+      uri: huggingface://tvall43/Qwen3.6-14B-A3B-FableVibes-GGUF/Qwen3.6-14B-A3B-FableVibes-Q8_0.gguf
+    - filename: llama-cpp/mmproj/Qwen3.6-14B-A3B-FableVibes-Q8_0/Qwen3.6-14B-A3B-FableVibes-mmproj-Q8_0.gguf
+      sha256: ca27dbf0c65a7232e9458bfdda8bc45efc09ab60e4cc6f58ea0c7b7cc2253257
+      uri: huggingface://tvall43/Qwen3.6-14B-A3B-FableVibes-GGUF/Qwen3.6-14B-A3B-FableVibes-mmproj-Q8_0.gguf
 - name: "qwen3.6-27b-fable-fusion-711-uncensored-heretic-nm-dau-neo-max-mtp"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
@@ -1605,7 +1992,7 @@
   files:
     - filename: ds4flash.gguf
       uri: https://huggingface.co/unsloth/DeepSeek-V4-Flash-GGUF
-      sha256: 7d6d1691bc2d02c5a8194afb8bd9b57519343afebf020231c61d9236504b4a5c
+      sha256: ba1d64ad8d77038124839956b614db2e889daa1a4ddc83060bb06ccb5a1d7461
 - name: "qwopus3.6-35b-a3b-coder-mtp"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
@@ -2227,6 +2614,83 @@
     - filename: llama-cpp/models/LFM2.5-1.2B-Instruct-GGUF/LFM2.5-1.2B-Instruct-Q4_K_M.gguf
       sha256: b1b3de114215d9507409a662a501a631095a479a419584e8a2ded6304b19b4f5
       uri: https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct-GGUF/resolve/main/LFM2.5-1.2B-Instruct-Q4_K_M.gguf
+- &lfm2-5-2-6b
+  name: "lfm2.5-2.6b"
+  url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
+  urls:
+    - https://huggingface.co/LiquidAI/LFM2.5-2.6B
+    - https://huggingface.co/LiquidAI/LFM2.5-2.6B-GGUF
+  description: |
+    LFM2.5-2.6B is LiquidAI's compact, text-only reasoning model for on-device
+    agentic workloads. It has 2.69B parameters, a 128K-token context window,
+    multilingual support, and post-training for tool use, instruction following,
+    data extraction, RAG, and multi-step agents. This entry uses the recommended
+    Q4_K_M GGUF quantization from LiquidAI's official repository.
+  license: "other"
+  tags:
+    - llm
+    - gguf
+    - reasoning
+    - cpu
+    - gpu
+  icon: https://cdn-uploads.huggingface.co/production/uploads/61b8e2ba285851687028d395/2b08LKpev0DNEk6DlnWkY.png
+  variants:
+    - model: lfm2.5-2.6b-q8
+  overrides:
+    backend: llama-cpp
+    context_size: 131072
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+      - completion
+    options:
+      - use_jinja:true
+    parameters:
+      model: llama-cpp/models/LFM2.5-2.6B-GGUF/LFM2.5-2.6B-Q4_K_M.gguf
+      repeat_penalty: 1.1
+      temperature: 0.1
+      top_k: 50
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/LFM2.5-2.6B-GGUF/LFM2.5-2.6B-Q4_K_M.gguf
+      sha256: 79fdf00351b46cf26f020aead28d01889886be87c55fa0eb907e6f9b00bfee14
+      uri: https://huggingface.co/LiquidAI/LFM2.5-2.6B-GGUF/resolve/main/LFM2.5-2.6B-Q4_K_M.gguf
+- !!merge <<: *lfm2-5-2-6b
+  name: "lfm2.5-2.6b-q8"
+  description: |
+    LFM2.5-2.6B is LiquidAI's compact, text-only reasoning model for on-device
+    agentic workloads. It has 2.69B parameters, a 128K-token context window,
+    multilingual support, and post-training for tool use, instruction following,
+    data extraction, RAG, and multi-step agents. This entry uses the higher-quality
+    Q8_0 GGUF quantization from LiquidAI's official repository.
+  variants: null
+  overrides:
+    backend: llama-cpp
+    context_size: 131072
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+      - completion
+    options:
+      - use_jinja:true
+    parameters:
+      model: llama-cpp/models/LFM2.5-2.6B-GGUF/LFM2.5-2.6B-Q8_0.gguf
+      repeat_penalty: 1.1
+      temperature: 0.1
+      top_k: 50
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/LFM2.5-2.6B-GGUF/LFM2.5-2.6B-Q8_0.gguf
+      sha256: 36587fdf27bdfc69caf2637273679a0870ec155162161bde6fd16e8c70bdb757
+      uri: https://huggingface.co/LiquidAI/LFM2.5-2.6B-GGUF/resolve/main/LFM2.5-2.6B-Q8_0.gguf
 - name: "qwopus3.6-27b-coder-compat-mtp"
   url: "github:mudler/LocalAI/gallery/virtual.yaml@master"
   urls:
@@ -4779,8 +5243,10 @@
   variants:
     - model: qwen3.6-27b-dflash
     - model: qwen3.6-27b-nvfp4-mtp
+    - model: qwen3.6-27b-q8
   url: github:mudler/LocalAI/gallery/virtual.yaml@master
   urls:
+    - https://huggingface.co/Qwen/Qwen3.6-27B
     - https://huggingface.co/unsloth/Qwen3.6-27B-GGUF
   description: |
     # Qwen3.6-27B
@@ -4839,6 +5305,71 @@
     - filename: llama-cpp/models/Qwen3.6-27B-GGUF/Qwen3.6-27B-Q4_K_M.gguf
       sha256: 5ed60d0af4650a854b1755bd392f9aef4872643dc25a254bc68043fa638392a0
       uri: https://huggingface.co/unsloth/Qwen3.6-27B-GGUF/resolve/main/Qwen3.6-27B-Q4_K_M.gguf
+    - filename: llama-cpp/mmproj/Qwen3.6-27B-GGUF/mmproj-F32.gguf
+      sha256: fdc443e974cad1f61c45af1cfd5580855855ddce0d6c14cc500a5714c486ac1d
+      uri: https://huggingface.co/unsloth/Qwen3.6-27B-GGUF/resolve/main/mmproj-F32.gguf
+- name: qwen3.6-27b-q8
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  urls:
+    - https://huggingface.co/Qwen/Qwen3.6-27B
+    - https://huggingface.co/unsloth/Qwen3.6-27B-GGUF
+  description: |
+    # Qwen3.6-27B Q8_0
+
+    [](https://chat.qwen.ai)
+
+    > [!Note]
+    > This repository contains model weights and configuration files for the post-trained model in the Hugging Face Transformers format.
+    >
+    > These artifacts are compatible with Hugging Face Transformers, vLLM, SGLang, KTransformers, etc.
+
+    Following the February release of the Qwen3.5 series, we're pleased to share the first open-weight variant of Qwen3.6. Built on direct feedback from the community, Qwen3.6 prioritizes stability and real-world utility, offering developers a more intuitive, responsive, and genuinely productive coding experience.
+
+    ## Qwen3.6 Highlights
+
+    This release delivers substantial upgrades, particularly in
+
+      - **Agentic Coding:** the model now handles frontend workflows and repository-level reasoning with greater fluency and precision.
+      - **Thinking Preservation:** we've introduced a new option to retain reasoning context from historical messages, streamlining iterative development and reducing overhead.
+
+    For more details, please refer to our blog post Qwen3.6-27B.
+
+    ## Model Overview
+
+    ...
+  license: apache-2.0
+  icon: https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3.6/Figures/qwen3.6_27b_score.png
+  tags:
+    - llm
+    - gguf
+    - qwen
+  last_checked: "2026-04-30"
+  overrides:
+    backend: llama-cpp
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    known_usecases:
+      - chat
+      - vision
+    mmproj: llama-cpp/mmproj/Qwen3.6-27B-GGUF/mmproj-F32.gguf
+    options:
+      - use_jinja:true
+    parameters:
+      min_p: 0
+      model: llama-cpp/models/Qwen3.6-27B-GGUF/Qwen3.6-27B-Q8_0.gguf
+      presence_penalty: 1.5
+      repeat_penalty: 1
+      temperature: 0.7
+      top_k: 20
+      top_p: 0.8
+    template:
+      use_tokenizer_template: true
+  files:
+    - filename: llama-cpp/models/Qwen3.6-27B-GGUF/Qwen3.6-27B-Q8_0.gguf
+      sha256: f93f517f38e696d35a1a7df2c0e3155a64f4c4dcd662107a146ae263f7fb14ce
+      uri: https://huggingface.co/unsloth/Qwen3.6-27B-GGUF/resolve/main/Qwen3.6-27B-Q8_0.gguf
     - filename: llama-cpp/mmproj/Qwen3.6-27B-GGUF/mmproj-F32.gguf
       sha256: fdc443e974cad1f61c45af1cfd5580855855ddce0d6c14cc500a5714c486ac1d
       uri: https://huggingface.co/unsloth/Qwen3.6-27B-GGUF/resolve/main/mmproj-F32.gguf
@@ -5066,6 +5597,7 @@
     - model: qwen3.6-35b-a3b-apex-mtp-i-nano
   url: github:mudler/LocalAI/gallery/virtual.yaml@master
   urls:
+    - https://huggingface.co/Qwen/Qwen3.6-35B-A3B
     - https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF
   description: |
     # Qwen3.6-35B-A3B
@@ -8622,6 +9154,34 @@
     - filename: llama-cpp/models/deepseek-ai.DeepSeek-V3.2.Q4_K_M-00029-of-00029.gguf
       sha256: 013af4e9d2f84e484f77c7bae2a02652607f0f0179bd2815ffdf401c3ada5184
       uri: https://huggingface.co/DevQuasar/deepseek-ai.DeepSeek-V3.2-GGUF/resolve/main/deepseek-ai.DeepSeek-V3.2.Q4_K_M-00029-of-00029.gguf
+- name: stable-diffusion-x4-upscaler
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  urls:
+    - https://huggingface.co/stabilityai/stable-diffusion-x4-upscaler
+  description: |
+    Stable Diffusion x4 Upscaler is Stability AI's diffusion-based super-resolution model. It enlarges low-resolution images by four times while reconstructing image detail.
+  license: openrail++
+  tags:
+    - image-upscaling
+    - super-resolution
+    - image-to-image
+    - diffusers
+  last_checked: "2026-07-30"
+  overrides:
+    backend: diffusers
+    f16: true
+    diffusers:
+      pipeline_type: StableDiffusionUpscalePipeline
+    known_usecases:
+      - image
+    parameters:
+      model: stabilityai/stable-diffusion-x4-upscaler
+    artifacts:
+      - name: model
+        target: model
+        source:
+          type: huggingface
+          repo: stabilityai/stable-diffusion-x4-upscaler
 - name: z-image-diffusers
   url: github:mudler/LocalAI/gallery/virtual.yaml@master
   urls:
@@ -32663,6 +33223,8 @@
       sha256: ""
       uri: https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors
 - name: trellis2-4b
+  variants:
+    - model: trellis2-4b-geometry
   url: github:mudler/LocalAI/gallery/trellis2cpp.yaml@master
   icon: https://cdn-avatars.huggingface.co/v1/production/uploads/1583646260758-5e64858c87403103f9f1055d.png
   urls:
@@ -39872,6 +40434,142 @@
     - filename: vibevoice-asr-q4_k.gguf
       uri: huggingface://cstr/vibevoice-asr-GGUF/vibevoice-asr-q4_k.gguf
       sha256: f1e87bb5c25dd469b495759e59c4554c4e8ec254f36c5c659737ff3e61ace982
+- name: vibevoice-asr-bitnet-crispasr
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  variants:
+    - model: vibevoice-asr-bitnet-embed-q8-crispasr
+    - model: vibevoice-asr-bitnet-vae-q5-crispasr
+    - model: vibevoice-asr-bitnet-both-q5-crispasr
+    - model: vibevoice-asr-bitnet-vae-q4-crispasr
+    - model: vibevoice-asr-bitnet-aggro-crispasr
+  urls:
+    - https://huggingface.co/microsoft/VibeVoice-ASR-BitNet
+    - https://huggingface.co/cstr/vibevoice-asr-bitnet-GGUF
+  description: |
+    Microsoft VibeVoice-ASR-BitNet is a 1.5B-parameter multilingual speech recognition model for English, Chinese, French, Italian, Korean, Portuguese, and Vietnamese. Its BitNet-trained language-model projections use ternary TQ2_0 weights. This recommended CrispASR build keeps the VAE encoder in Q8_0 and the embedding in F16, and is approximately 1.55 GB.
+  license: mit
+  tags:
+    - crispasr
+    - asr
+    - speech-recognition
+    - stt
+    - gguf
+    - bitnet
+    - multilingual
+  overrides:
+    backend: crispasr
+    known_usecases:
+      - transcript
+    name: vibevoice-asr-bitnet-crispasr
+    parameters:
+      model: vibevoice-asr-bitnet-tq2.gguf
+  files:
+    - filename: vibevoice-asr-bitnet-tq2.gguf
+      uri: huggingface://cstr/vibevoice-asr-bitnet-GGUF/vibevoice-asr-bitnet-tq2.gguf
+      sha256: 0a3053dfeffc8675673de892caa52b39ea7558091b9b422ebaeba94862a4d4a2
+- name: vibevoice-asr-bitnet-embed-q8-crispasr
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  urls:
+    - https://huggingface.co/microsoft/VibeVoice-ASR-BitNet
+    - https://huggingface.co/cstr/vibevoice-asr-bitnet-GGUF
+  description: |
+    Microsoft VibeVoice-ASR-BitNet is a 1.5B-parameter multilingual speech recognition model. This approximately 1.34 GB CrispASR build uses ternary TQ2_0 language-model projections, a Q8_0 VAE encoder, and a Q8_0 embedding.
+  license: mit
+  tags: [crispasr, asr, speech-recognition, stt, gguf, bitnet, multilingual]
+  overrides:
+    backend: crispasr
+    known_usecases: [transcript]
+    name: vibevoice-asr-bitnet-embed-q8-crispasr
+    parameters:
+      model: vibevoice-asr-bitnet-embed-q8.gguf
+  files:
+    - filename: vibevoice-asr-bitnet-embed-q8.gguf
+      uri: huggingface://cstr/vibevoice-asr-bitnet-GGUF/vibevoice-asr-bitnet-embed-q8.gguf
+      sha256: 450e5ae0a66a7bbe7318487a751524e4d73da799316ccffbbef0d03281bec849
+- name: vibevoice-asr-bitnet-vae-q5-crispasr
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  urls:
+    - https://huggingface.co/microsoft/VibeVoice-ASR-BitNet
+    - https://huggingface.co/cstr/vibevoice-asr-bitnet-GGUF
+  description: |
+    Microsoft VibeVoice-ASR-BitNet is a 1.5B-parameter multilingual speech recognition model. This approximately 1.33 GB CrispASR build uses ternary TQ2_0 language-model projections, a Q5_0 VAE encoder, and an F16 embedding.
+  license: mit
+  tags: [crispasr, asr, speech-recognition, stt, gguf, bitnet, multilingual]
+  overrides:
+    backend: crispasr
+    known_usecases: [transcript]
+    name: vibevoice-asr-bitnet-vae-q5-crispasr
+    parameters:
+      model: vibevoice-asr-bitnet-vae-q5.gguf
+  files:
+    - filename: vibevoice-asr-bitnet-vae-q5.gguf
+      uri: huggingface://cstr/vibevoice-asr-bitnet-GGUF/vibevoice-asr-bitnet-vae-q5.gguf
+      sha256: f31ec8b858ba69a425c626373e65f17bf73e383efe9a1e125f18196c6495c57f
+- name: vibevoice-asr-bitnet-both-q5-crispasr
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  urls:
+    - https://huggingface.co/microsoft/VibeVoice-ASR-BitNet
+    - https://huggingface.co/cstr/vibevoice-asr-bitnet-GGUF
+  description: |
+    Microsoft VibeVoice-ASR-BitNet is a 1.5B-parameter multilingual speech recognition model. This approximately 1.12 GB CrispASR build uses ternary TQ2_0 language-model projections, a Q5_0 VAE encoder, and a Q8_0 embedding.
+  license: mit
+  tags: [crispasr, asr, speech-recognition, stt, gguf, bitnet, multilingual]
+  overrides:
+    backend: crispasr
+    known_usecases: [transcript]
+    name: vibevoice-asr-bitnet-both-q5-crispasr
+    parameters:
+      model: vibevoice-asr-bitnet-both-q5.gguf
+  files:
+    - filename: vibevoice-asr-bitnet-both-q5.gguf
+      uri: huggingface://cstr/vibevoice-asr-bitnet-GGUF/vibevoice-asr-bitnet-both-q5.gguf
+      sha256: 3ad6552a214dab12786c3ae34afbbabef5701059a56a6e77cfeaf00c7cf02b80
+- name: vibevoice-asr-bitnet-vae-q4-crispasr
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  urls:
+    - https://huggingface.co/microsoft/VibeVoice-ASR-BitNet
+    - https://huggingface.co/cstr/vibevoice-asr-bitnet-GGUF
+  description: |
+    Microsoft VibeVoice-ASR-BitNet is a 1.5B-parameter multilingual speech recognition model. This approximately 1.26 GB CrispASR build uses ternary TQ2_0 language-model projections, a Q4_0 VAE encoder, and an F16 embedding.
+  license: mit
+  tags: [crispasr, asr, speech-recognition, stt, gguf, bitnet, multilingual]
+  overrides:
+    backend: crispasr
+    known_usecases: [transcript]
+    name: vibevoice-asr-bitnet-vae-q4-crispasr
+    parameters:
+      model: vibevoice-asr-bitnet-vae-q4.gguf
+  files:
+    - filename: vibevoice-asr-bitnet-vae-q4.gguf
+      uri: huggingface://cstr/vibevoice-asr-bitnet-GGUF/vibevoice-asr-bitnet-vae-q4.gguf
+      sha256: 72be9d760b2edb25faa8fa8a75a29d2de76837803599f3373496542ce955367b
+- name: vibevoice-asr-bitnet-aggro-crispasr
+  url: github:mudler/LocalAI/gallery/virtual.yaml@master
+  urls:
+    - https://huggingface.co/microsoft/VibeVoice-ASR-BitNet
+    - https://huggingface.co/cstr/vibevoice-asr-bitnet-GGUF
+  description: |
+    Microsoft VibeVoice-ASR-BitNet is a 1.5B-parameter multilingual speech recognition model for English, Chinese, French, Italian, Korean, Portuguese, and Vietnamese. This compact CrispASR build combines ternary TQ2_0 language-model projections with a Q4_0 VAE encoder and Q8_0 embedding, reducing the model to approximately 1.05 GB while producing the same JFK benchmark transcription as the larger builds published alongside it.
+  license: mit
+  tags:
+    - crispasr
+    - asr
+    - speech-recognition
+    - stt
+    - gguf
+    - bitnet
+    - multilingual
+  overrides:
+    backend: crispasr
+    known_usecases:
+      - transcript
+    name: vibevoice-asr-bitnet-aggro-crispasr
+    parameters:
+      model: vibevoice-asr-bitnet-aggro.gguf
+  files:
+    - filename: vibevoice-asr-bitnet-aggro.gguf
+      uri: huggingface://cstr/vibevoice-asr-bitnet-GGUF/vibevoice-asr-bitnet-aggro.gguf
+      sha256: 5f118693e984e70e33e8818921ea41b2997eec80866337610e3d14bdd5bce6d1
 - name: vibevoice-tts-crispasr
   url: github:mudler/LocalAI/gallery/virtual.yaml@master
   urls:

@@ -161,7 +161,7 @@ local-ai run https://gist.githubusercontent.com/.../phi-2.yaml
 local-ai run oci://localai/phi-2:latest
 ```
 
-To test a running LocalAI server from the terminal, open an interactive chat session from another shell. Inside the prompt, `/models` lists installed models and `/model <name>` switches between them.
+To work with a running LocalAI server from the terminal, start the built-in agent from another shell. It answers questions, reads your files and runs commands on your machine, asking you to approve anything that changes state. Inside a session, `/models` lists installed models and `/model <name>` switches between them. See the [Terminal agent](https://localai.io/docs/features/terminal-agent/) docs.
 
 ```bash
 # Terminal 1
@@ -195,7 +195,7 @@ For more details, see the [Getting Started guide](https://localai.io/basics/gett
 - **August 2025**: MLX, MLX-VLM, Diffusers, llama.cpp now supported on Apple Silicon
 - **July 2025**: All backends migrated outside the main binary — [lightweight, modular architecture](https://github.com/mudler/LocalAI/releases/tag/v3.2.0)
 
-For older news and full release notes, see [GitHub Releases](https://github.com/mudler/LocalAI/releases) and the [News page](https://localai.io/basics/news/).
+For older news and full release notes, see [GitHub Releases](https://github.com/mudler/LocalAI/releases) and the [blog](https://localai.io/blog/).
 
 ## Features
 
@@ -260,7 +260,7 @@ We also maintain [apex-quant](https://github.com/localai-org/apex-quant), a per-
 - [Kubernetes installation](https://localai.io/basics/getting_started/#run-localai-in-kubernetes)
 - [Integrations & community projects](https://localai.io/docs/integrations/)
 - [Installation video walkthrough](https://www.youtube.com/watch?v=cMVNnlqwfw4)
-- [Media & blog posts](https://localai.io/basics/news/#media-blogs-social)
+- [Blog: release write-ups, benchmarks and engineering notes](https://localai.io/blog/)
 - [Examples](https://github.com/mudler/LocalAI-examples) — including the [realtime voice assistant demo](https://github.com/localai-org/localai-realtime-demo) (Go client for the Realtime API with tool calling)
 
 ## Team
